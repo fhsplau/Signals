@@ -12,6 +12,26 @@ public class SignalGenerator implements SignalProperties{
         for(String propertyKey: propertiesKeys)
             this.properties.put(propertyKey,null);
     }
+    public SignalGenerator(double samplingFrequency){
+        this.properties.put("Fs",null);
+        this.properties.put("A",null);
+        this.properties.put("T",null);
+        this.properties.put("Fp",samplingFrequency);
+    }
+
+    public SignalGenerator(double samplingFrequency, double amplitude, double signalFrequency){
+        this.properties.put("Fs",signalFrequency);
+        this.properties.put("A",amplitude);
+        this.properties.put("T",null);
+        this.properties.put("Fp",samplingFrequency);
+    }
+
+    public SignalGenerator(double amplitude, double signalFrequency){
+        this.properties.put("Fs",signalFrequency);
+        this.properties.put("A",amplitude);
+        this.properties.put("T",null);
+        this.properties.put("Fp",null);
+    }
 
     @Override
     public double getProperty(String propertyName) {
@@ -44,6 +64,18 @@ public class SignalGenerator implements SignalProperties{
         return timeVector;
     }
 
+    public List<Double> timeVectorGenerator(double t1, double t2){
+        List<Double> timeVector = new ArrayList<Double>();
+        double T = 1/(this.getProperty("Fp"));
+
+        this.setProperty("T", T);
+        //this.setProperty("Fp", samplingFrequency);
+
+        for(double dt = t1; dt <= t2; dt += T)
+            timeVector.add(dt);
+        return timeVector;
+    }
+
     public List<Double> timeVectorGenerator(double t1, double t2, int numberOfSamples){
         List<Double> timeVector = new ArrayList<Double>();
         double T = (t2-t1)/((double)numberOfSamples-1);
@@ -69,6 +101,16 @@ public class SignalGenerator implements SignalProperties{
         return sinus;
     }
 
+    public List<Double> sinusGenerator(List<Double> timeVector){
+        List<Double> sinus = new ArrayList<Double>();
+        double A = this.getProperty("A");
+        double f = this.getProperty("Fs");
+
+        for(double t : timeVector)
+            sinus.add(A*Math.sin(2*PI*f*t));
+        return sinus;
+    }
+
     public List<Double> generateOnesVector(int length){
         List<Double> onesVector = new ArrayList<Double>(length);
         for(int index = 0; index < length; index++)
@@ -84,22 +126,13 @@ public class SignalGenerator implements SignalProperties{
     }
 
     public static void main(String[] args){
-        SignalGenerator signal = new SignalGenerator();
-        double fp = 10;
-        int N=100;
-        double Fs = (1/(2*PI));
-        double A = 2;
-        List<Double> t = signal.timeVectorGenerator(0,2*PI,N);
-        System.out.println("Time: " + t);
-        List<Double> sinus = signal.sinusGenerator(Fs, A, t);
-        System.out.println("Sinus: " + sinus);
+        SignalGenerator signal = new SignalGenerator(1,2);
+        List<Double> t = signal.timeVectorGenerator(0,2*PI,100);
+        List<Double> sinus = signal.sinusGenerator(t);
         signal.printAllProperties();
-        SignalMath signalMath = new SignalMath();
-        System.out.println("Signal power: " + signalMath.sigPow(sinus));
-        System.out.println(signalMath.addTwoSignals(sinus,t));
-        System.out.println(signal.generateOnesVector(10));
-        System.out.println(signal.generateZerosVector(10));
-        System.out.println(signalMath.addTwoSignals(signal.generateOnesVector(10),signal.generateOnesVector(10)));
+        System.out.println(sinus);
+        System.out.println(t.size());
+
     }
 
 }
